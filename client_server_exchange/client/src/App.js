@@ -1,7 +1,10 @@
 import React, { Component } from 'react';
-import './App.css';
+import AuthService from "./components/AuthService/AuthService";
+import withAuth from "./components/withAuth/withAuth";
 import SingleInput from "./components/SingleInput/SingleInput";
-import Status from  "./components/Status/Status";
+import Status from "./components/Status/Status";
+import './App.css';
+const Auth = new AuthService();
 
 class App extends Component {
   constructor(props) {
@@ -9,7 +12,12 @@ class App extends Component {
     this.state = {
       login: "",
       password: "",
-      status: "status here! ;)"
+      status: {
+       fullName: "",
+        light: "",
+        gas: "",
+        water: ""
+      }
     };
   }
 
@@ -26,6 +34,11 @@ class App extends Component {
        .then(res => console.log(res));
    }*/
 
+  static handleLogout(){
+    Auth.logout();
+    this.props.history.replace("/login");
+  }
+
   handleLoginChange = (e) => {
     this.setState({ login: e.target.value });
   };
@@ -38,7 +51,13 @@ class App extends Component {
     e.preventDefault();
     this.setState({
       login: "",
-      password: ""
+      password: "",
+      status: {
+        fullName: "",
+        light: "",
+        gas: "",
+        water: ""
+      }
     })
   };
 
@@ -55,13 +74,20 @@ class App extends Component {
         return response.json();
       })
       .then((response) => {
-        if(response.status === 200){
+        if (response.status === 200) {
           this.setState({
-            status: response.body.firstName + " " + response.body.lastName
+            status: {
+              fullName: response.user.firstName + " " + response.user.lastName,
+              light: "light: " + response.user.meter.light,
+              gas: "gas:" + response.user.meter.gas,
+              water: "water:" + response.user.meter.water
+            }
           });
-        }else if(response.status === 404){
+        } else if (response.status === 404) {
           this.setState({
-            status: "not found :("
+            status: {
+              fullName: "Not found X_X"
+            }
           });
         }
       })
@@ -92,13 +118,15 @@ class App extends Component {
           type={"submit"}
           className={"frmSubmitBtn"}
           value={"Submit"} />
-        <button className={"btnClearForm"} onClick={this.clearForm}> Clear form </button>
-        <Status
-          status={this.state.status} />
+        <button className={"btnClearForm"} onClick={this.clearForm}> Clear form</button>
+        <Status status={this.state.status} />
+        <p className="App-login">
+          <button type="button" className="form-submit" onClick={App.handleLogout.bind(this)}> Logout </button>
+        </p>
       </form>
     )
       ;
   }
 }
 
-export default App;
+export default withAuth(App);
